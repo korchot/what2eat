@@ -1,4 +1,29 @@
-<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What to Eat? - Shared Restaurant Randomizer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .toast-enter { animation: slideIn 0.3s ease-out forwards; }
+        .toast-exit { animation: slideOut 0.3s ease-in forwards; }
+        @keyframes slideIn { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes slideOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(100%); opacity: 0; } }
+        .blur-text { filter: blur(4px); transition: filter 0.1s; }
+        .clear-text { filter: blur(0px); transition: filter 0.3s ease-out; }
+        /* Custom scrollbar for small lists */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex justify-center items-center font-sans">
+
     <div class="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden flex flex-col h-[85vh] max-h-[800px]">
         
         <!-- Header -->
@@ -24,17 +49,143 @@
         </div>
 
         <!-- Navigation Tabs -->
-<!-- ... existing code ... -->
+        <div class="flex border-b border-gray-200 bg-white">
+            <button id="tab-spin" onclick="switchTab('spin')" class="tab-btn active flex-1 py-3 text-sm font-semibold text-orange-500 border-b-2 border-orange-500 transition-colors"><i class="fa-solid fa-dice mr-1"></i> Spin</button>
+            <button id="tab-restaurants" onclick="switchTab('restaurants')" class="tab-btn flex-1 py-3 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"><i class="fa-solid fa-list mr-1"></i> Places</button>
+            <button id="tab-categories" onclick="switchTab('categories')" class="tab-btn flex-1 py-3 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"><i class="fa-solid fa-tags mr-1"></i> Categories</button>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 overflow-y-auto bg-gray-50/50">
+            
+            <!-- TAB 1: SPIN -->
+            <div id="content-spin" class="p-6 h-full flex flex-col justify-center items-center">
+                
+                <div class="w-full mb-8 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="block text-sm font-medium text-gray-700">Filter by Category:</label>
+                        <div class="space-x-2">
+                            <button onclick="selectAllFilters(true)" class="text-xs text-orange-500 hover:text-orange-700 font-medium transition-colors">Select All</button>
+                            <span class="text-gray-300">|</span>
+                            <button onclick="selectAllFilters(false)" class="text-xs text-orange-500 hover:text-orange-700 font-medium transition-colors">Deselect All</button>
+                        </div>
+                    </div>
+                    <div id="spin-category-filter" class="max-h-32 overflow-y-auto flex flex-wrap gap-2 p-1">
+                        <!-- Categories injected here -->
+                    </div>
+                </div>
+
+                <!-- Result Display Area -->
+                <div class="bg-white border-2 border-gray-100 rounded-3xl w-full aspect-square flex flex-col items-center justify-center shadow-inner relative overflow-hidden mb-8 transition-all duration-300">
+                    
+                    <div id="result-placeholder" class="text-center">
+                        <i class="fa-solid fa-question text-6xl text-gray-200 mb-4 block"></i>
+                        <p class="text-gray-400 font-medium">Ready when you are!</p>
+                    </div>
+
+                    <div id="result-display" class="hidden flex-col items-center justify-center text-center p-6 w-full h-full">
+                        <span id="result-category" class="text-sm font-bold text-orange-500 uppercase tracking-widest mb-2 block"></span>
+                        <h2 id="result-name" class="text-3xl sm:text-4xl font-extrabold text-gray-800 leading-tight break-words w-full px-4"></h2>
+                    </div>
+                </div>
+
+                <div id="spin-stats" class="text-xs text-gray-400 font-medium mb-3 text-center">
+                    <!-- Stats injected here -->
+                </div>
+
+                <button id="btn-spin" onclick="spinRoulette()" class="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-4 rounded-2xl shadow-lg transform transition-all active:scale-95 text-lg">
+                    <i class="fa-solid fa-sync-alt mr-2"></i> Pick for me!
+                </button>
+            </div>
+
+            <!-- TAB 2: RESTAURANTS -->
+            <div id="content-restaurants" class="hidden p-4">
+                
+                <!-- Add Restaurant Form -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-3"><i class="fa-solid fa-plus-circle text-orange-500 mr-1"></i> Add New Place</h3>
+                    <form id="form-add-restaurant" onsubmit="addRestaurant(event)" class="space-y-3">
+                        <input type="text" id="input-rest-name" placeholder="Restaurant Name" required class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block p-2.5 outline-none">
+                        <div class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 max-h-32 overflow-y-auto flex flex-wrap gap-2" id="input-rest-category">
+                            <!-- Categories injected here -->
+                        </div>
+                        <button type="submit" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-medium py-2.5 rounded-xl transition-colors text-sm">Add Restaurant</button>
+                    </form>
+                </div>
+
+                <div class="flex justify-between items-end mb-3 px-1">
+                    <h3 class="font-semibold text-gray-800">Your List</h3>
+                    <span id="rest-count" class="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-1 rounded-md"></span>
+                </div>
+
+                <div id="restaurant-list" class="space-y-3 pb-6">
+                    <!-- Restaurants injected here -->
+                </div>
+            </div>
+
+            <!-- TAB 3: CATEGORIES -->
+            <div id="content-categories" class="hidden p-4">
+                
+                <!-- Add Category Form -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-3"><i class="fa-solid fa-tags text-orange-500 mr-1"></i> Add New Category</h3>
+                    <form id="form-add-category" onsubmit="addCategory(event)" class="flex gap-2">
+                        <input type="text" id="input-cat-name" placeholder="e.g. Italian, Spicy..." required class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block p-2.5 outline-none">
+                        <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white font-medium px-5 rounded-xl transition-colors text-sm">Add</button>
+                    </form>
+                </div>
+
+                <h3 class="font-semibold text-gray-800 mb-3 px-1">Manage Categories</h3>
+                <div id="category-list" class="grid grid-cols-2 gap-3 pb-6">
+                    <!-- Categories injected here -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl transform transition-all">
+            <h3 class="font-semibold text-gray-800 mb-4"><i class="fa-solid fa-pen-to-square text-orange-500 mr-1"></i> Edit Place</h3>
+            <form id="form-edit-restaurant" onsubmit="saveEdit(event)" class="space-y-4">
+                <input type="text" id="edit-rest-name" required class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block p-2.5 outline-none">
+                <div class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 max-h-40 overflow-y-auto flex flex-wrap gap-2" id="edit-rest-category">
+                    <!-- Checkboxes injected here -->
+                </div>
+                <div class="flex gap-3 mt-4">
+                    <button type="button" onclick="closeEditModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2.5 rounded-xl transition-colors text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-medium py-2.5 rounded-xl transition-colors text-sm">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 w-[90%] max-w-sm pointer-events-none"></div>
+
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+            <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-utensils text-3xl text-orange-500"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">What to Eat?</h2>
+            <p class="text-sm text-gray-500 mb-6">Please sign in with Google to sync the list with your friends!</p>
+            <button onclick="signInWithGoogle()" class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all shadow-sm">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-5 h-5">
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =====================================================================
-        // 🚨 ตั้งค่าสำหรับตอนนำไป Deploy ลง GitHub Pages ของคุณเอง 🚨
-        // 1. ไปที่ https://console.firebase.google.com/ สร้างโปรเจกต์ฟรี
-        // 2. ไปที่ Project settings -> เปิด Web App -> นำ Config มาวางแทน null ด้านล่างนี้
-        // 3. ไปที่ Firestore Database -> Create Database -> ตั้งค่า Rules ให้เป็น Test Mode (อ่าน/เขียนได้ทุกคน)
+        // 🚨 เอา Config ของ Firebase จากโปรเจกต์ของคุณมาวางแทน null ด้านล่างนี้ครับ 🚨
         // =====================================================================
         const MY_FIREBASE_CONFIG = {
 	        apiKey: "AIzaSyC45IJPDrZUzpQUqUpTmzcVTkrKX7gCAhc",
@@ -44,10 +195,7 @@
             messagingSenderId: "427413963957",
             appId: "1:427413963957:web:62600c179e86080be86afc",
             measurementId: "G-P0SWX62R10"
-	    }; 
-
-        // ไม่ต้องตั้ง SHARED_ROOM_ID แบบ Fix แล้ว ระบบจะสร้างจาก URL อัตโนมัติ!
-        // =====================================================================
+	    };
         
         const firebaseConfig = MY_FIREBASE_CONFIG || (typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {});
         const app = initializeApp(firebaseConfig);
@@ -59,16 +207,22 @@
             const params = new URLSearchParams(window.location.search);
             let room = params.get('room');
             if (!room) {
-                // ถ้าไม่มี room ใน URL ให้สุ่มรหัส 6 หลักขึ้นมาใหม่
                 room = Math.random().toString(36).substring(2, 8).toUpperCase();
-                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?room=' + room;
-                window.history.pushState({path:newUrl}, '', newUrl);
+                try {
+                    // Prevent modifying URL if running in a blob/preview environment
+                    if (window.location.protocol !== 'blob:') {
+                        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?room=' + room;
+                        window.history.pushState({path:newUrl}, '', newUrl);
+                    }
+                } catch (e) {
+                    console.warn("History pushState is restricted in this environment.");
+                }
             }
             return room;
         }
 
         const currentRoomId = getOrCreateRoomId();
-        const appId = typeof __app_id !== 'undefined' && __app_id !== "default_app_id" ? __app_id : currentRoomId; 
+        const appId = typeof __app_id !== 'undefined' && __app_id !== "default-app-id" ? __app_id : currentRoomId; 
         
         let currentUser = null;
 
@@ -78,7 +232,467 @@
         });
 
         // --- STATE MANAGEMENT ---
-<!-- ... existing code ... -->
+        const DEFAULT_CATEGORIES = ['Thai', 'Japanese', 'Fast Food', 'Healthy', 'Cafe'];
+        const DEFAULT_RESTAURANTS = [
+            { id: 1690000000001, name: 'KFC', categories: ['Fast Food'], active: true },
+            { id: 1690000000002, name: 'Sushi Express', categories: ['Japanese'], active: true },
+            { id: 1690000000003, name: 'Somtum Nua', categories: ['Thai', 'Healthy'], active: true },
+            { id: 1690000000004, name: 'Salad Factory', categories: ['Healthy'], active: true }
+        ];
+
+        let categories = [];
+        let restaurants = [];
+        let isSpinning = false;
+        let selectedFilters = [];
+        let editingRestId = null;
+        let isInitialLoad = true;
+        let unsubscribeCat = null;
+        let unsubscribeRest = null;
+
+        // --- FIREBASE AUTH (Google Login) ---
+        const provider = new GoogleAuthProvider();
+
+        async function signInWithGoogle() {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Login Failed:", error);
+                showToast("Login failed or cancelled", "error");
+            }
+        }
+
+        async function logout() {
+            try {
+                if(unsubscribeCat) unsubscribeCat();
+                if(unsubscribeRest) unsubscribeRest();
+                await signOut(auth);
+                restaurants = [];
+                categories = [];
+                updateUI();
+                showToast("Signed out successfully");
+            } catch (error) {
+                console.error("Logout Failed:", error);
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            const overlay = document.getElementById('login-overlay');
+            
+            if (user) {
+                overlay.classList.add('hidden');
+                setupListeners();
+                if(isInitialLoad) {
+                    showToast(`Welcome, ${user.displayName || 'User'}!`);
+                }
+            } else {
+                overlay.classList.remove('hidden');
+            }
+        });
+
+        function setupListeners() {
+            if (!currentUser) return;
+
+            const catRef = collection(db, 'artifacts', appId, 'public', 'data', 'categories');
+            const restRef = collection(db, 'artifacts', appId, 'public', 'data', 'restaurants');
+
+            // Listen for Categories
+            unsubscribeCat = onSnapshot(catRef, (snapshot) => {
+                categories = [];
+                snapshot.forEach(docSnap => categories.push(docSnap.id));
+                
+                if (snapshot.empty && isInitialLoad) {
+                    DEFAULT_CATEGORIES.forEach(c => setDoc(doc(catRef, c), {name: c}));
+                } else {
+                    if(isInitialLoad) {
+                        selectedFilters = [...categories, 'Uncategorized'];
+                    } else {
+                        selectedFilters = selectedFilters.filter(f => categories.includes(f) || f === 'Uncategorized');
+                    }
+                    updateUI();
+                }
+            }, (error) => console.error(error));
+
+            // Listen for Restaurants
+            unsubscribeRest = onSnapshot(restRef, (snapshot) => {
+                restaurants = [];
+                snapshot.forEach(docSnap => {
+                    restaurants.push({ id: Number(docSnap.id), ...docSnap.data() });
+                });
+                
+                if (snapshot.empty && isInitialLoad) {
+                    DEFAULT_RESTAURANTS.forEach(r => setDoc(doc(restRef, r.id.toString()), r));
+                } else {
+                    updateUI();
+                    isInitialLoad = false;
+                }
+            }, (error) => console.error(error));
+        }
+
+        // --- UTILS ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgColor = type === 'error' ? 'bg-red-500' : (type === 'warning' ? 'bg-yellow-500' : 'bg-gray-800');
+            const icon = type === 'error' ? 'fa-circle-exclamation' : (type === 'warning' ? 'fa-triangle-exclamation' : 'fa-check-circle');
+
+            toast.className = `${bgColor} text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 toast-enter pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span class="text-sm font-medium">${message}</span>`;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- UI RENDERING ---
+        function updateUI() {
+            renderCategoryDropdowns();
+            renderCategoryList();
+            renderRestaurantList();
+            updateSpinStats();
+        }
+
+        function renderCategoryDropdowns() {
+            const spinFilter = document.getElementById('spin-category-filter');
+            const addRestCat = document.getElementById('input-rest-category');
+            
+            spinFilter.innerHTML = '';
+            addRestCat.innerHTML = '';
+
+            const allFilterCats = [...categories, 'Uncategorized'];
+
+            allFilterCats.forEach(cat => {
+                const isChecked = selectedFilters.includes(cat) ? 'checked' : '';
+                spinFilter.innerHTML += `
+                    <label class="inline-flex items-center bg-gray-100 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-200 transition-colors border border-transparent has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50">
+                        <input type="checkbox" value="${cat}" class="spin-filter-cb sr-only" ${isChecked} onchange="updateFilters()">
+                        <span class="text-xs font-medium text-gray-700 select-none">${cat}</span>
+                    </label>
+                `;
+            });
+
+            categories.forEach(cat => {
+                addRestCat.innerHTML += `
+                    <label class="inline-flex items-center bg-white border border-gray-200 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-50 transition-colors has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50">
+                        <input type="checkbox" value="${cat}" class="add-rest-cb sr-only">
+                        <span class="text-xs font-medium text-gray-700 select-none">${cat}</span>
+                    </label>
+                `;
+            });
+        }
+
+        function updateFilters() {
+            const checkboxes = document.querySelectorAll('.spin-filter-cb');
+            selectedFilters = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+            updateSpinStats();
+        }
+
+        function selectAllFilters(select) {
+            const checkboxes = document.querySelectorAll('.spin-filter-cb');
+            checkboxes.forEach(cb => cb.checked = select);
+            updateFilters();
+        }
+
+        function renderCategoryList() {
+            const list = document.getElementById('category-list');
+            list.innerHTML = '';
+            
+            categories.forEach(cat => {
+                list.innerHTML += `
+                    <div class="bg-white border border-gray-200 p-3 rounded-xl flex justify-between items-center shadow-sm">
+                        <span class="text-sm font-medium text-gray-700 truncate mr-2" title="${cat}">${cat}</span>
+                        <button onclick="deleteCategory('${cat}')" class="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            
+            if(categories.length === 0) {
+                list.innerHTML = `<div class="col-span-2 text-center text-sm text-gray-500 py-4">No categories added.</div>`;
+            }
+        }
+
+        function renderRestaurantList() {
+            const list = document.getElementById('restaurant-list');
+            list.innerHTML = '';
+            
+            const sortedRest = [...restaurants].sort((a, b) => {
+                if(a.active !== b.active) return a.active ? -1 : 1;
+                return a.name.localeCompare(b.name);
+            });
+
+            document.getElementById('rest-count').innerText = `${restaurants.length} places`;
+
+            sortedRest.forEach(rest => {
+                const opacityClass = rest.active ? 'opacity-100' : 'opacity-50';
+                const tagsHTML = (rest.categories || []).map(cat => 
+                    `<span class="inline-block mt-1 mr-1 px-2 py-0.5 bg-orange-100 text-orange-700 text-[10px] font-medium rounded-md truncate max-w-full">${cat}</span>`
+                ).join('');
+
+                list.innerHTML += `
+                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex items-center justify-between shadow-sm transition-opacity duration-300 ${opacityClass}">
+                        <div class="flex-1 min-w-0 pr-3">
+                            <h4 class="text-base font-semibold text-gray-800 truncate">${rest.name}</h4>
+                            <div class="flex flex-wrap">${tagsHTML}</div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 flex-shrink-0">
+                            <label class="flex items-center cursor-pointer" title="Include in spin">
+                                <div class="relative">
+                                    <input type="checkbox" class="sr-only" ${rest.active ? 'checked' : ''} onchange="toggleRestaurant(${rest.id})">
+                                    <div class="block bg-gray-300 w-10 h-6 rounded-full transition-colors ${rest.active ? 'bg-orange-500' : ''}"></div>
+                                    <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ${rest.active ? 'transform translate-x-4' : ''}"></div>
+                                </div>
+                            </label>
+
+                            <button onclick="openEditModal(${rest.id})" class="text-gray-400 hover:text-orange-500 transition-colors bg-gray-50 hover:bg-orange-50 p-2 rounded-lg" title="Edit Place">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+
+                            <button onclick="deleteRestaurant(${rest.id})" class="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 hover:bg-red-50 p-2 rounded-lg">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if(restaurants.length === 0) {
+                list.innerHTML = `<div class="text-center text-sm text-gray-500 py-8 bg-white rounded-xl border border-dashed border-gray-300">Your list is empty. Add a restaurant above!</div>`;
+            }
+        }
+
+        // --- ACTIONS (Database Operations) ---
+
+        async function addCategory(e) {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const input = document.getElementById('input-cat-name');
+            const val = input.value.trim();
+            if(val === '') return;
+            
+            if(categories.find(c => c.toLowerCase() === val.toLowerCase())) {
+                showToast('Category already exists!', 'warning');
+                return;
+            }
+
+            input.value = '';
+            const catRef = collection(db, 'artifacts', appId, 'public', 'data', 'categories');
+            await setDoc(doc(catRef, val), {name: val});
+            showToast('Category added!');
+        }
+
+        async function deleteCategory(catName) {
+            if (!currentUser) return;
+
+            const restRef = collection(db, 'artifacts', appId, 'public', 'data', 'restaurants');
+            restaurants.forEach(r => {
+                if (r.categories && r.categories.includes(catName)) {
+                    let newCats = r.categories.filter(c => c !== catName);
+                    if (newCats.length === 0) newCats = ['Uncategorized'];
+                    setDoc(doc(restRef, r.id.toString()), { categories: newCats }, { merge: true });
+                }
+            });
+            
+            const catRef = collection(db, 'artifacts', appId, 'public', 'data', 'categories');
+            await deleteDoc(doc(catRef, catName));
+            showToast('Category deleted', 'warning');
+        }
+
+        async function addRestaurant(e) {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const nameInput = document.getElementById('input-rest-name');
+            const checkboxes = document.querySelectorAll('.add-rest-cb:checked');
+            
+            const name = nameInput.value.trim();
+            let selectedCats = Array.from(checkboxes).map(cb => cb.value);
+
+            if(name === '') return;
+            if(selectedCats.length === 0) selectedCats = ['Uncategorized'];
+
+            const newId = Date.now();
+            const newRest = {
+                id: newId,
+                name: name,
+                categories: selectedCats,
+                active: true
+            };
+
+            nameInput.value = '';
+            document.querySelectorAll('.add-rest-cb').forEach(cb => cb.checked = false);
+
+            const restRef = collection(db, 'artifacts', appId, 'public', 'data', 'restaurants');
+            await setDoc(doc(restRef, newId.toString()), newRest);
+            showToast('Restaurant added!');
+        }
+
+        async function toggleRestaurant(id) {
+            if (!currentUser) return;
+            const rest = restaurants.find(r => r.id === id);
+            if(rest) {
+                const restRef = collection(db, 'artifacts', appId, 'public', 'data', 'restaurants');
+                await setDoc(doc(restRef, id.toString()), { active: !rest.active }, { merge: true });
+            }
+        }
+
+        async function deleteRestaurant(id) {
+            if (!currentUser) return;
+            const restRef = collection(db, 'artifacts', appId, 'public', 'data', 'restaurants');
+            await deleteDoc(doc(restRef, id.toString()));
+            showToast('Restaurant removed', 'warning');
+        }
+
+        function openEditModal(id) {
+            const rest = restaurants.find(r => r.id === id);
+            if (!rest) return;
+            
+            editingRestId = id;
+            document.getElementById('edit-rest-name').value = rest.name;
+            
+            const container = document.getElementById('edit-rest-category');
+            container.innerHTML = '';
+            
+            categories.forEach(cat => {
+                const isChecked = (rest.categories || []).includes(cat) ? 'checked' : '';
+                container.innerHTML += `
+                    <label class="inline-flex items-center bg-white border border-gray-200 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-50 transition-colors has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50">
+                        <input type="checkbox" value="${cat}" class="edit-rest-cb sr-only" ${isChecked}>
+                        <span class="text-xs font-medium text-gray-700 select-none">${cat}</span>
+                    </label>
+                `;
+            });
+            
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+            editingRestId = null;
+        }
+
+        async function saveEdit(e) {
+            e.preventDefault();
+            if (!currentUser || !editingRestId) return;
+            
+            const nameInput = document.getElementById('edit-rest-name').value.trim();
+            const checkboxes = document.querySelectorAll('.edit-rest-cb:checked');
+            let selectedCats = Array.from(checkboxes).map(cb => cb.value);
+
+            if(nameInput === '') return;
+            if(selectedCats.length === 0) selectedCats = ['Uncategorized'];
+
+            const restRef = collection(db, 'artifacts', appId, 'public', 'data', 'restaurants');
+            await setDoc(doc(restRef, editingRestId.toString()), {
+                name: nameInput,
+                categories: selectedCats
+            }, { merge: true });
+            
+            closeEditModal();
+            showToast('Restaurant updated!');
+        }
+
+        // --- RANDOMIZER LOGIC ---
+        function getActivePool() {
+            return restaurants.filter(r => {
+                if (!r.active) return false;
+                if (selectedFilters.length === 0) return false;
+                return (r.categories || []).some(cat => selectedFilters.includes(cat));
+            });
+        }
+
+        function updateSpinStats() {
+            const pool = getActivePool();
+            const stats = document.getElementById('spin-stats');
+            stats.innerHTML = `<i class="fa-solid fa-chart-pie mr-1"></i> ${pool.length} restaurants in the current pool`;
+        }
+
+        function spinRoulette() {
+            if (isSpinning) return;
+            
+            const pool = getActivePool();
+            
+            if (pool.length === 0) {
+                showToast('No active restaurants found for this filter!', 'error');
+                return;
+            }
+
+            isSpinning = true;
+            const btn = document.getElementById('btn-spin');
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Thinking...`;
+
+            const placeholder = document.getElementById('result-placeholder');
+            const display = document.getElementById('result-display');
+            const catNameUI = document.getElementById('result-category');
+            const restNameUI = document.getElementById('result-name');
+
+            placeholder.classList.add('hidden');
+            display.classList.remove('hidden');
+            display.classList.add('flex');
+
+            let duration = 2000;
+            let interval = 50;
+            let ticks = duration / interval;
+            let currentTick = 0;
+
+            restNameUI.classList.remove('clear-text');
+            restNameUI.classList.add('blur-text');
+            catNameUI.innerText = "...";
+
+            const spinInterval = setInterval(() => {
+                const randomItem = pool[Math.floor(Math.random() * pool.length)];
+                restNameUI.innerText = randomItem.name;
+                currentTick++;
+
+                if(currentTick > ticks * 0.7) {
+                    interval += 20;
+                }
+
+                if (currentTick >= ticks) {
+                    clearInterval(spinInterval);
+                    finishSpin(pool);
+                }
+            }, interval);
+        }
+
+        function finishSpin(pool) {
+            const winner = pool[Math.floor(Math.random() * pool.length)];
+            
+            const catNameUI = document.getElementById('result-category');
+            const restNameUI = document.getElementById('result-name');
+            const btn = document.getElementById('btn-spin');
+
+            restNameUI.innerText = winner.name;
+            catNameUI.innerText = (winner.categories || []).join(', ');
+            
+            restNameUI.classList.remove('blur-text');
+            restNameUI.classList.add('clear-text');
+
+            isSpinning = false;
+            btn.classList.remove('opacity-70', 'cursor-not-allowed');
+            btn.innerHTML = `<i class="fa-solid fa-sync-alt"></i> Spin Again!`;
+            
+            const card = restNameUI.parentElement.parentElement;
+            card.style.transform = 'scale(1.02)';
+            card.style.boxShadow = '0 10px 25px -5px rgba(249, 115, 22, 0.3)';
+            card.style.borderColor = '#fbd38d'; 
+            
+            setTimeout(() => {
+                card.style.transform = 'scale(1)';
+                card.style.boxShadow = '';
+                card.style.borderColor = '#f3f4f6'; 
+            }, 300);
+        }
+
         // --- TAB NAVIGATION ---
         function switchTab(tabId) {
             if(isSpinning) return;
@@ -102,9 +716,13 @@
 
         // --- ROOM ACTIONS ---
         function copyShareLink() {
-            const url = window.location.href;
+            let url = window.location.href;
             
-            // Try modern clipboard API first
+            // Provide a dummy URL format if running in preview mode
+            if (window.location.protocol === 'blob:') {
+                url = "https://yourdomain.github.io/?room=" + currentRoomId;
+            }
+            
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(url).then(() => {
                     showToast("Invite link copied! Send it to your friends.", "success");
@@ -135,13 +753,19 @@
         }
 
         function createNewRoom() {
-            // Generate a fresh random room ID and reload the page with it
             const newRoom = Math.random().toString(36).substring(2, 8).toUpperCase();
-            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?room=' + newRoom;
-            window.location.href = newUrl;
+            try {
+                if (window.location.protocol === 'blob:') {
+                    showToast("Please deploy to GitHub Pages to use the 'New Room' feature.", "warning");
+                } else {
+                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?room=' + newRoom;
+                    window.location.href = newUrl;
+                }
+            } catch (e) {
+                console.warn("Navigation restricted in this environment:", e);
+            }
         }
 
-        // Bind functions to window so inline HTML events (onclick, onsubmit) can trigger them
         Object.assign(window, {
             switchTab,
             selectAllFilters,
